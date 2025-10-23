@@ -64,8 +64,15 @@ install_macos() {
     
     if command_exists brew; then
         echo -e "${GREEN}✅ Homebrew found${NC}"
-        echo -e "${YELLOW}Installing via Homebrew tap...${NC}"
         
+        # Try direct installation first
+        echo -e "${YELLOW}Trying direct installation...${NC}"
+        if brew install smart-push 2>/dev/null; then
+            echo -e "${GREEN}✅ Smart Push installed successfully via brew!${NC}"
+            return 0
+        fi
+        
+        echo -e "${YELLOW}Direct installation not available. Installing via tap...${NC}"
         # Add the tap and install
         brew tap "${GITHUB_ORG}/${GITHUB_REPO}" || true
         brew install "${GITHUB_ORG}/${GITHUB_REPO}/smart-push"
@@ -96,20 +103,26 @@ install_macos() {
 install_debian() {
     echo -e "${CYAN}🐧 Detected Debian/Ubuntu${NC}"
     
-  # Check if we have necessary tools
-  if ! command_exists wget && ! command_exists curl; then
-    echo -e "${RED}❌ Neither wget nor curl found. Please install one of them first.${NC}"
-    exit 1
-  fi
-  
-  # Check for sort command (required by smart-push)
-  if ! command_exists sort; then
-    echo -e "${YELLOW}⚠️  sort command not found. Installing coreutils...${NC}"
-    sudo apt-get update && sudo apt-get install -y coreutils
-  fi
+    # Check if we have necessary tools
+    if ! command_exists wget && ! command_exists curl; then
+        echo -e "${RED}❌ Neither wget nor curl found. Please install one of them first.${NC}"
+        exit 1
+    fi
     
-    # Download and install the .deb package
-    echo -e "${YELLOW}Downloading smart-push package...${NC}"
+    # Check for sort command (required by smart-push)
+    if ! command_exists sort; then
+        echo -e "${YELLOW}⚠️  sort command not found. Installing coreutils...${NC}"
+        sudo apt-get update && sudo apt-get install -y coreutils
+    fi
+    
+    # Try direct installation first (if package is available in a PPA)
+    echo -e "${YELLOW}Trying direct installation...${NC}"
+    if sudo apt-get install -y smart-push 2>/dev/null; then
+        echo -e "${GREEN}✅ Smart Push installed successfully via apt!${NC}"
+        return 0
+    fi
+    
+    echo -e "${YELLOW}Direct installation not available. Downloading package...${NC}"
     
     TEMP_DIR=$(mktemp -d)
     DEB_FILE="${TEMP_DIR}/smart-push_${VERSION}_all.deb"

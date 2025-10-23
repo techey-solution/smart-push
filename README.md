@@ -58,26 +58,40 @@ Before using these files, you need to customize the following placeholders:
 
 ### Universal Installer (Recommended)
 ```bash
-curl -s https://raw.githubusercontent.com/yourorg/smart-push/main/install.sh | bash
+curl -s https://raw.githubusercontent.com/techey-solution/smart-push/main/install.sh | bash
 ```
 
-### macOS (Homebrew)
+### Direct Installation
+
+**macOS (Homebrew):**
 ```bash
-brew tap yourorg/smart-push
-brew install yourorg/smart-push/smart-push
+brew install smart-push
 ```
 
-### Debian/Ubuntu
+**Linux (Debian/Ubuntu):**
+```bash
+sudo apt install smart-push
+```
+
+### Alternative Installation Methods
+
+**macOS (Homebrew Tap):**
+```bash
+brew tap techey-solution/smart-push
+brew install techey-solution/smart-push/smart-push
+```
+
+**Debian/Ubuntu (Manual):**
 ```bash
 # Download and install .deb package
-wget https://github.com/yourorg/smart-push/releases/download/v1.0.0/smart-push_1.0.0_all.deb
+wget https://github.com/techey-solution/smart-push/releases/download/v1.0.0/smart-push_1.0.0_all.deb
 sudo dpkg -i smart-push_1.0.0_all.deb
 ```
 
 ### Manual Installation
 ```bash
 # Download script
-curl -O https://raw.githubusercontent.com/yourorg/smart-push/main/smart-push
+curl -O https://raw.githubusercontent.com/techey-solution/smart-push/main/smart-push
 
 # Make executable
 chmod +x smart-push
