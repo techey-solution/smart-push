@@ -11,7 +11,7 @@ class SmartPush < Formula
   desc "Smart Auto-Push to GitHub - Automate Git add/commit/pull/push with smart commit message suggestions"
   homepage "https://github.com/techey-solution/smart-push"  # CUSTOMIZE: Replace with your GitHub org/repo
   url "https://github.com/techey-solution/smart-push/archive/v1.0.0.tar.gz"  # CUSTOMIZE: Replace with your GitHub org/repo and version
-  sha256 "your_sha256_hash_here"  # CUSTOMIZE: Replace with actual SHA256 of the tarball
+  sha256 "d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed"  # CUSTOMIZE: Replace with actual SHA256 of the tarball
   license "MIT"  # CUSTOMIZE: Replace with your preferred license
   
   # This formula works on both macOS and Linux
