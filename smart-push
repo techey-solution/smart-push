@@ -35,12 +35,24 @@ show_help() {
     echo -e "  ${CYAN}-v, --version${NC}     Show version information"
     echo -e "  ${CYAN}--update${NC}           Update to latest version"
     echo ""
+    echo -e "${MAGENTA}🚀 Smart Commands:${NC}"
+    echo -e "  ${CYAN}--smart-pull${NC}       Smart pull with auto-stash"
+    echo -e "  ${CYAN}--smart-commit${NC}     Smart commit with suggestions"
+    echo -e "  ${CYAN}--smart-push${NC}       Smart push to current branch"
+    echo -e "  ${CYAN}--status${NC}           Show detailed repository status"
+    echo -e "  ${CYAN}--sync${NC}             Sync repository (pull + push)"
+    echo -e "  ${CYAN}--clean${NC}            Clean untracked files and reset"
+    echo ""
     echo -e "${MAGENTA}✨ Features:${NC}"
     echo -e "  ${CYAN}•${NC} Smart commit message suggestions"
     echo -e "  ${CYAN}•${NC} Automatic project type detection"
     echo -e "  ${CYAN}•${NC} Pre-commit checks for common issues"
     echo -e "  ${CYAN}•${NC} Interactive workflow with colored output"
     echo -e "  ${CYAN}•${NC} Support for custom commit messages and branches"
+    echo -e "  ${CYAN}•${NC} Auto-stash before pull operations"
+    echo -e "  ${CYAN}•${NC} Smart branch detection and creation"
+    echo -e "  ${CYAN}•${NC} Repository status and cleanup tools"
+    echo -e "  ${CYAN}•${NC} Automatic sync and conflict resolution"
     echo ""
     echo -e "${MAGENTA}🔗 Repository:${NC}"
     echo -e "  ${CYAN}https://github.com/techey-solution/smart-push${NC}"
@@ -169,6 +181,260 @@ update_smart_push() {
     fi
 }
 
+# Function for smart pull only
+smart_pull() {
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo -e "${BLUE}║   🔄 Smart Pull - GitHub 🚀         ║${NC}"
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo ""
+    
+    # Get current branch
+    CURRENT_BRANCH=$(git branch --show-current)
+    echo -e "${CYAN}🌿 Current branch: ${CURRENT_BRANCH}${NC}"
+    
+    # Check for uncommitted changes
+    if [[ ! -z $(git status -s) ]]; then
+        echo -e "${YELLOW}⚠️  You have uncommitted changes${NC}"
+        git status -s | head -10
+        echo ""
+        read -p "Do you want to stash changes before pulling? (y/n) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            git stash push -m "Auto-stash before smart pull $(date)"
+            echo -e "${GREEN}✅ Changes stashed${NC}"
+        fi
+    fi
+    
+    # Pull with rebase
+    echo -e "${YELLOW}🔄 Pulling latest changes...${NC}"
+    if git pull --rebase origin $CURRENT_BRANCH; then
+        echo -e "${GREEN}✅ Pull successful${NC}"
+        
+        # Restore stashed changes if any
+        if git stash list | grep -q "Auto-stash before smart pull"; then
+            echo -e "${CYAN}🔄 Restoring stashed changes...${NC}"
+            git stash pop
+            echo -e "${GREEN}✅ Stashed changes restored${NC}"
+        fi
+    else
+        echo -e "${RED}❌ Pull failed - there might be conflicts${NC}"
+        echo -e "${YELLOW}Please resolve conflicts manually and try again${NC}"
+        exit 1
+    fi
+}
+
+# Function for smart commit only
+smart_commit_only() {
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo -e "${BLUE}║   📝 Smart Commit - GitHub 🚀       ║${NC}"
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo ""
+    
+    # Check for changes
+    if [[ -z $(git status -s) ]]; then
+        echo -e "${YELLOW}⚠️  No changes to commit!${NC}"
+        exit 0
+    fi
+    
+    echo -e "${GREEN}✅ Changes detected:${NC}"
+    git status -s | head -20
+    
+    # Get commit message
+    COMMIT_MESSAGE=${2:-""}
+    if [ -z "$COMMIT_MESSAGE" ]; then
+        echo -e "${CYAN}💡 Smart commit message suggestions:${NC}"
+        echo ""
+        echo -e "  ${BLUE}1.${NC} Fix bug"
+        echo -e "  ${BLUE}2.${NC} Add feature"
+        echo -e "  ${BLUE}3.${NC} Update documentation"
+        echo -e "  ${BLUE}4.${NC} Refactor code"
+        echo -e "  ${BLUE}5.${NC} Custom message"
+        echo ""
+        read -p "Choose option (1-5): " choice
+        
+        case $choice in
+            1) COMMIT_MESSAGE="Fix: $(git status -s | head -1 | awk '{print $2}' | xargs basename)" ;;
+            2) COMMIT_MESSAGE="Feature: $(git status -s | head -1 | awk '{print $2}' | xargs basename)" ;;
+            3) COMMIT_MESSAGE="Docs: Update documentation" ;;
+            4) COMMIT_MESSAGE="Refactor: Improve code structure" ;;
+            5) 
+                read -p "Enter commit message: " COMMIT_MESSAGE
+                ;;
+            *) COMMIT_MESSAGE="Update $(date +%Y-%m-%d)" ;;
+        esac
+    fi
+    
+    # Stage and commit
+    git add .
+    if git commit -m "$COMMIT_MESSAGE"; then
+        echo -e "${GREEN}✅ Committed successfully: ${COMMIT_MESSAGE}${NC}"
+    else
+        echo -e "${RED}❌ Commit failed${NC}"
+        exit 1
+    fi
+}
+
+# Function for smart push only
+smart_push_only() {
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo -e "${BLUE}║   🚀 Smart Push - GitHub 🚀         ║${NC}"
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo ""
+    
+    CURRENT_BRANCH=$(git branch --show-current)
+    echo -e "${CYAN}🌿 Pushing branch: ${CURRENT_BRANCH}${NC}"
+    
+    # Check if branch exists on remote
+    if git ls-remote --heads origin $CURRENT_BRANCH | grep -q $CURRENT_BRANCH; then
+        echo -e "${CYAN}Pushing to existing branch: origin/${CURRENT_BRANCH}${NC}"
+    else
+        echo -e "${CYAN}Creating new branch on remote: origin/${CURRENT_BRANCH}${NC}"
+        read -p "This will create a new remote branch. Continue? (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${BLUE}✋ Push cancelled${NC}"
+            exit 0
+        fi
+    fi
+    
+    # Push
+    if git push origin $CURRENT_BRANCH; then
+        echo -e "${GREEN}✅ Pushed to GitHub successfully!${NC}"
+        COMMIT_HASH=$(git rev-parse --short HEAD)
+        echo -e "${CYAN}📊 Latest commit: ${COMMIT_HASH}${NC}"
+    else
+        echo -e "${RED}❌ Push failed!${NC}"
+        exit 1
+    fi
+}
+
+# Function to show repository status
+show_status() {
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo -e "${BLUE}║   📊 Repository Status 🚀           ║${NC}"
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo ""
+    
+    # Current branch
+    CURRENT_BRANCH=$(git branch --show-current)
+    echo -e "${CYAN}🌿 Current Branch: ${CURRENT_BRANCH}${NC}"
+    
+    # Remote info
+    REMOTE_URL=$(git config --get remote.origin.url 2>/dev/null || echo "No remote")
+    echo -e "${CYAN}🔗 Remote: ${REMOTE_URL}${NC}"
+    
+    # Status
+    echo -e "${YELLOW}📋 Status:${NC}"
+    git status --porcelain | while read line; do
+        STATUS=$(echo $line | cut -c1-2)
+        FILE=$(echo $line | cut -c4-)
+        case $STATUS in
+            "??") echo -e "  ${GREEN}+${NC} ${FILE} (new file)" ;;
+            "A ") echo -e "  ${BLUE}+${NC} ${FILE} (added)" ;;
+            "M ") echo -e "  ${YELLOW}~${NC} ${FILE} (modified)" ;;
+            "D ") echo -e "  ${RED}-${NC} ${FILE} (deleted)" ;;
+            " M") echo -e "  ${YELLOW}~${NC} ${FILE} (modified, staged)" ;;
+            " D") echo -e "  ${RED}-${NC} ${FILE} (deleted, staged)" ;;
+        esac
+    done
+    
+    # Recent commits
+    echo -e "${YELLOW}📝 Recent Commits:${NC}"
+    git log --oneline -5 | while read line; do
+        echo -e "  ${CYAN}•${NC} ${line}"
+    done
+    
+    # Branch info
+    echo -e "${YELLOW}🌿 Branches:${NC}"
+    git branch -v | while read line; do
+        if [[ $line == *"*"* ]]; then
+            echo -e "  ${GREEN}→${NC} ${line}"
+        else
+            echo -e "  ${CYAN} ${NC} ${line}"
+        fi
+    done
+}
+
+# Function to sync repository
+sync_repository() {
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo -e "${BLUE}║   🔄 Sync Repository 🚀             ║${NC}"
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo ""
+    
+    CURRENT_BRANCH=$(git branch --show-current)
+    echo -e "${CYAN}🌿 Syncing branch: ${CURRENT_BRANCH}${NC}"
+    
+    # Fetch latest
+    echo -e "${YELLOW}📥 Fetching latest changes...${NC}"
+    git fetch origin
+    
+    # Check if we're behind
+    BEHIND=$(git rev-list --count HEAD..origin/$CURRENT_BRANCH 2>/dev/null || echo "0")
+    AHEAD=$(git rev-list --count origin/$CURRENT_BRANCH..HEAD 2>/dev/null || echo "0")
+    
+    if [ "$BEHIND" -gt 0 ]; then
+        echo -e "${YELLOW}⚠️  You are ${BEHIND} commits behind${NC}"
+        smart_pull
+    fi
+    
+    if [ "$AHEAD" -gt 0 ]; then
+        echo -e "${YELLOW}⚠️  You are ${AHEAD} commits ahead${NC}"
+        smart_push_only
+    fi
+    
+    if [ "$BEHIND" -eq 0 ] && [ "$AHEAD" -eq 0 ]; then
+        echo -e "${GREEN}✅ Repository is up to date!${NC}"
+    fi
+}
+
+# Function to clean repository
+clean_repository() {
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo -e "${BLUE}║   🧹 Clean Repository 🚀            ║${NC}"
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo ""
+    
+    echo -e "${YELLOW}🧹 Cleaning repository...${NC}"
+    
+    # Clean untracked files
+    UNTRACKED=$(git clean -n | wc -l)
+    if [ "$UNTRACKED" -gt 0 ]; then
+        echo -e "${CYAN}Found ${UNTRACKED} untracked files${NC}"
+        read -p "Remove untracked files? (y/n) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            git clean -f
+            echo -e "${GREEN}✅ Untracked files removed${NC}"
+        fi
+    fi
+    
+    # Clean untracked directories
+    UNTRACKED_DIRS=$(git clean -nd | grep "Would remove" | wc -l)
+    if [ "$UNTRACKED_DIRS" -gt 0 ]; then
+        echo -e "${CYAN}Found ${UNTRACKED_DIRS} untracked directories${NC}"
+        read -p "Remove untracked directories? (y/n) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            git clean -fd
+            echo -e "${GREEN}✅ Untracked directories removed${NC}"
+        fi
+    fi
+    
+    # Reset to clean state
+    if [[ ! -z $(git status -s) ]]; then
+        echo -e "${YELLOW}⚠️  You have uncommitted changes${NC}"
+        read -p "Reset all changes? (y/n) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            git reset --hard HEAD
+            echo -e "${GREEN}✅ All changes reset${NC}"
+        fi
+    fi
+    
+    echo -e "${GREEN}✅ Repository cleaned!${NC}"
+}
+
 # Check for help flags FIRST (before any other processing)
 if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]] || [[ "$1" == "help" ]]; then
     show_help
@@ -184,6 +450,37 @@ fi
 # Check for update flag
 if [[ "$1" == "--update" ]] || [[ "$1" == "update" ]]; then
     update_smart_push
+    exit 0
+fi
+
+# Check for smart flags
+if [[ "$1" == "--smart-pull" ]] || [[ "$1" == "smart-pull" ]]; then
+    smart_pull
+    exit 0
+fi
+
+if [[ "$1" == "--smart-commit" ]] || [[ "$1" == "smart-commit" ]]; then
+    smart_commit_only
+    exit 0
+fi
+
+if [[ "$1" == "--smart-push" ]] || [[ "$1" == "smart-push" ]]; then
+    smart_push_only
+    exit 0
+fi
+
+if [[ "$1" == "--status" ]] || [[ "$1" == "status" ]]; then
+    show_status
+    exit 0
+fi
+
+if [[ "$1" == "--sync" ]] || [[ "$1" == "sync" ]]; then
+    sync_repository
+    exit 0
+fi
+
+if [[ "$1" == "--clean" ]] || [[ "$1" == "clean" ]]; then
+    clean_repository
     exit 0
 fi
 
