@@ -41,6 +41,8 @@ detect_os() {
         else
             echo "linux"
         fi
+    elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ -n "$WINDIR" ]]; then
+        echo "windows"
     else
         echo "unknown"
     fi
@@ -148,6 +150,32 @@ install_debian() {
     echo -e "${GREEN}✅ Smart Push installed successfully!${NC}"
 }
 
+# Function to install on Windows
+install_windows() {
+    echo -e "${CYAN}🪟 Detected Windows${NC}"
+    echo -e "${YELLOW}⚠️  Windows installation requires Git Bash or WSL${NC}"
+    echo ""
+    echo -e "${MAGENTA}📖 Installation Options:${NC}"
+    echo ""
+    echo -e "${BLUE}Option 1: WSL (Recommended)${NC}"
+    echo -e "  1. Install WSL: wsl --install"
+    echo -e "  2. Open WSL terminal"
+    echo -e "  3. Run: curl -s https://raw.githubusercontent.com/${GITHUB_ORG}/${GITHUB_REPO}/main/install.sh | bash"
+    echo ""
+    echo -e "${BLUE}Option 2: Git Bash${NC}"
+    echo -e "  1. Install Git for Windows"
+    echo -e "  2. Open Git Bash terminal"
+    echo -e "  3. Run: curl -s https://raw.githubusercontent.com/${GITHUB_ORG}/${GITHUB_REPO}/main/install.sh | bash"
+    echo ""
+    echo -e "${BLUE}Option 3: Manual Installation${NC}"
+    echo -e "  1. Download: curl -O https://raw.githubusercontent.com/${GITHUB_ORG}/${GITHUB_REPO}/main/smart-push"
+    echo -e "  2. Make executable: chmod +x smart-push"
+    echo -e "  3. Add to PATH: mv smart-push /usr/local/bin/"
+    echo ""
+    echo -e "${YELLOW}Note: Smart Push requires Git to work properly.${NC}"
+    echo -e "${GREEN}✅ Windows installation instructions provided!${NC}"
+}
+
 # Function to install on other Linux distributions
 install_linux_generic() {
     echo -e "${CYAN}🐧 Detected Linux (generic)${NC}"
@@ -214,6 +242,9 @@ main() {
             ;;
         "debian")
             install_debian
+            ;;
+        "windows")
+            install_windows
             ;;
         "linux"|"rhel"|"arch")
             install_linux_generic

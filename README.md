@@ -61,6 +61,12 @@ Before using these files, you need to customize the following placeholders:
 curl -s https://raw.githubusercontent.com/techey-solution/smart-push/main/install.sh | bash
 ```
 
+**Supported Platforms:**
+- ✅ macOS (Intel & Apple Silicon)
+- ✅ Linux (Ubuntu, Debian, CentOS, Arch, etc.)
+- ✅ Windows (via WSL or Git Bash)
+- ✅ Any system with curl/wget
+
 ### Direct Installation
 
 **macOS (Homebrew):**
@@ -71,6 +77,35 @@ brew install smart-push
 **Linux (Debian/Ubuntu):**
 ```bash
 sudo apt install smart-push
+```
+
+### Windows Installation
+
+**Option 1: WSL (Recommended)**
+```bash
+# Install WSL
+wsl --install
+
+# Open WSL terminal and run
+curl -s https://raw.githubusercontent.com/techey-solution/smart-push/main/install.sh | bash
+```
+
+**Option 2: Git Bash**
+```bash
+# Install Git for Windows, then open Git Bash and run
+curl -s https://raw.githubusercontent.com/techey-solution/smart-push/main/install.sh | bash
+```
+
+**Option 3: Manual Installation**
+```bash
+# Download script
+curl -O https://raw.githubusercontent.com/techey-solution/smart-push/main/smart-push
+
+# Make executable
+chmod +x smart-push
+
+# Add to PATH
+mv smart-push /usr/local/bin/
 ```
 
 ### Alternative Installation Methods
