@@ -121,6 +121,7 @@ smart-push "Add new feature" feature-branch
 
 - Git (required for Git operations)
 - Bash (for script execution)
+- Sort command (for file sorting operations)
 - curl or wget (for installer)
 
 ## 📝 License

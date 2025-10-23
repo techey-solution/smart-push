@@ -55,6 +55,13 @@ command_exists() {
 install_macos() {
     echo -e "${CYAN}🍎 Detected macOS${NC}"
     
+    # Check for sort command (should be available by default on macOS)
+    if ! command_exists sort; then
+        echo -e "${RED}❌ sort command not found. This is unusual on macOS.${NC}"
+        echo -e "${YELLOW}Please install Xcode Command Line Tools: xcode-select --install${NC}"
+        exit 1
+    fi
+    
     if command_exists brew; then
         echo -e "${GREEN}✅ Homebrew found${NC}"
         echo -e "${YELLOW}Installing via Homebrew tap...${NC}"
@@ -89,11 +96,17 @@ install_macos() {
 install_debian() {
     echo -e "${CYAN}🐧 Detected Debian/Ubuntu${NC}"
     
-    # Check if we have necessary tools
-    if ! command_exists wget && ! command_exists curl; then
-        echo -e "${RED}❌ Neither wget nor curl found. Please install one of them first.${NC}"
-        exit 1
-    fi
+  # Check if we have necessary tools
+  if ! command_exists wget && ! command_exists curl; then
+    echo -e "${RED}❌ Neither wget nor curl found. Please install one of them first.${NC}"
+    exit 1
+  fi
+  
+  # Check for sort command (required by smart-push)
+  if ! command_exists sort; then
+    echo -e "${YELLOW}⚠️  sort command not found. Installing coreutils...${NC}"
+    sudo apt-get update && sudo apt-get install -y coreutils
+  fi
     
     # Download and install the .deb package
     echo -e "${YELLOW}Downloading smart-push package...${NC}"

@@ -16,6 +16,7 @@ class SmartPush < Formula
   
   # This formula works on both macOS and Linux
   depends_on :linux if OS.linux?
+  depends_on "coreutils" if OS.linux?
   
   def install
     # Install the smart-push script to bin directory
