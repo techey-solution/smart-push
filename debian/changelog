@@ -1,0 +1,11 @@
+smart-push (1.0.0) unstable; urgency=low
+
+  * Initial release of smart-push CLI tool
+  * Smart Auto-Push to GitHub with intelligent commit message suggestions
+  * Automatic project type detection (frontend/backend)
+  * Pre-commit checks for common issues
+  * Interactive workflow with colored output
+  * Support for custom commit messages and branch names
+  * Complete Git workflow automation (add/commit/pull/push)
+
+ -- Your Name <your.email@example.com>  Mon, 01 Jan 2024 12:00:00 +0000  # CUSTOMIZE: Replace with your details and actual date

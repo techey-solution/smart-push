@@ -1,0 +1,283 @@
+#!/bin/bash
+
+# 🚀 Smart Auto-Push to GitHub Script
+# Usage: ./smart-push.sh [commit-message] [branch-name]
+# Example: ./smart-push.sh "Fix user login bug" ment-v1.0.0
+
+# Exit on error but allow specific error handling
+set -e
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Banner
+echo -e "${BLUE}════════════════════════════════════════${NC}"
+echo -e "${BLUE}║   🚀 Smart Auto-Push to GitHub 🚀    ║${NC}"
+echo -e "${BLUE}════════════════════════════════════════${NC}"
+echo ""
+
+# Get parameters
+COMMIT_MESSAGE=${1}
+TARGET_BRANCH=${2}
+
+# Get current branch if not specified
+if [ -z "$TARGET_BRANCH" ]; then
+    TARGET_BRANCH=$(git branch --show-current)
+    echo -e "${CYAN}ℹ️  Using current branch: ${TARGET_BRANCH}${NC}"
+fi
+
+# Check if we're in a git repository
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo -e "${RED}❌ Error: Not a git repository!${NC}"
+    echo -e "${YELLOW}Please run this script from within your project directory.${NC}"
+    exit 1
+fi
+
+# Get project type (backend/frontend)
+if [ -f "composer.json" ]; then
+    PROJECT_TYPE="backend"
+    PROJECT_NAME="API"
+elif [ -f "package.json" ]; then
+    PROJECT_TYPE="frontend"
+    PROJECT_NAME="Frontend"
+else
+    PROJECT_TYPE="unknown"
+    PROJECT_NAME="Project"
+fi
+
+echo -e "${MAGENTA}📦 Project Type: ${PROJECT_NAME}${NC}"
+echo -e "${CYAN}🌿 Target Branch: ${TARGET_BRANCH}${NC}"
+echo ""
+
+# Step 1: Check for uncommitted changes
+echo -e "${YELLOW}Step 1: Checking for changes...${NC}"
+if [[ -z $(git status -s) ]]; then
+    echo -e "${YELLOW}⚠️  No changes to commit!${NC}"
+    read -p "Do you want to push anyway? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${BLUE}✋ Push cancelled.${NC}"
+        exit 0
+    fi
+else
+    echo -e "${GREEN}✅ Changes detected:${NC}"
+    git status -s | head -20
+    if [ $(git status -s | wc -l) -gt 20 ]; then
+        echo -e "${YELLOW}... and $(($(git status -s | wc -l) - 20)) more files${NC}"
+    fi
+fi
+echo ""
+
+# Step 2: Get commit message if not provided
+if [ -z "$COMMIT_MESSAGE" ]; then
+    echo -e "${YELLOW}Step 2: Creating commit message...${NC}"
+    echo -e "${CYAN}💡 Smart suggestions based on changes:${NC}"
+    
+    # Analyze changes and suggest commit messages
+    CHANGED_FILES=$(git status -s | awk '{print $2}')
+    
+    # Count file types
+    PHP_COUNT=$(echo "$CHANGED_FILES" | grep -c '\.php$' || true)
+    VUE_COUNT=$(echo "$CHANGED_FILES" | grep -c '\.vue$' || true)
+    JS_COUNT=$(echo "$CHANGED_FILES" | grep -c '\.js$' || true)
+    CSS_COUNT=$(echo "$CHANGED_FILES" | grep -c '\.css$' || true)
+    CONFIG_COUNT=$(echo "$CHANGED_FILES" | grep -c 'config\|\.env\|\.yml\|\.json$' || true)
+    
+    # Suggest commit messages
+    echo ""
+    if [ $PHP_COUNT -gt 0 ]; then
+        echo -e "  ${BLUE}1.${NC} Update backend logic ($PHP_COUNT PHP files)"
+    fi
+    if [ $VUE_COUNT -gt 0 ]; then
+        echo -e "  ${BLUE}2.${NC} Update frontend components ($VUE_COUNT Vue files)"
+    fi
+    if [ $JS_COUNT -gt 0 ]; then
+        echo -e "  ${BLUE}3.${NC} Update JavaScript logic ($JS_COUNT JS files)"
+    fi
+    if [ $CONFIG_COUNT -gt 0 ]; then
+        echo -e "  ${BLUE}4.${NC} Update configuration files ($CONFIG_COUNT files)"
+    fi
+    echo -e "  ${BLUE}5.${NC} Bug fix"
+    echo -e "  ${BLUE}6.${NC} Feature implementation"
+    echo -e "  ${BLUE}7.${NC} Code refactoring"
+    echo -e "  ${BLUE}8.${NC} Documentation update"
+    echo -e "  ${BLUE}9.${NC} Custom message"
+    echo ""
+    
+    read -p "Choose an option (1-9) or press Enter for custom: " choice
+    echo ""
+    
+    case $choice in
+        1) COMMIT_MESSAGE="Update backend logic" ;;
+        2) COMMIT_MESSAGE="Update frontend components" ;;
+        3) COMMIT_MESSAGE="Update JavaScript logic" ;;
+        4) COMMIT_MESSAGE="Update configuration" ;;
+        5) 
+            read -p "Describe the bug fix: " bug_desc
+            COMMIT_MESSAGE="Fix: $bug_desc"
+            ;;
+        6)
+            read -p "Describe the feature: " feature_desc
+            COMMIT_MESSAGE="Feature: $feature_desc"
+            ;;
+        7) COMMIT_MESSAGE="Refactor: Improve code structure" ;;
+        8) COMMIT_MESSAGE="Docs: Update documentation" ;;
+        9|*)
+            read -p "Enter commit message: " COMMIT_MESSAGE
+            ;;
+    esac
+    
+    # If still empty, use default
+    if [ -z "$COMMIT_MESSAGE" ]; then
+        COMMIT_MESSAGE="Update $(date +%Y-%m-%d)"
+    fi
+fi
+
+echo -e "${GREEN}📝 Commit message: ${COMMIT_MESSAGE}${NC}"
+echo ""
+
+# Step 3: Pre-commit checks
+echo -e "${YELLOW}Step 3: Running pre-commit checks...${NC}"
+
+# Check for common issues
+ERROR_COUNT=0
+
+# Check for debugging statements
+echo -e "${CYAN}Checking for debug statements...${NC}"
+if git diff --cached --name-only | xargs grep -n "console.log\|var_dump\|dd(\|dump(" 2>/dev/null; then
+    echo -e "${YELLOW}⚠️  Found debugging statements (this is OK for dev)${NC}"
+fi
+
+# Check for TODO/FIXME
+echo -e "${CYAN}Checking for TODO/FIXME...${NC}"
+TODO_COUNT=$(git diff --cached | grep -c "TODO\|FIXME" || true)
+if [ $TODO_COUNT -gt 0 ]; then
+    echo -e "${YELLOW}ℹ️  Found $TODO_COUNT TODO/FIXME comments${NC}"
+fi
+
+# Check for merge conflict markers
+echo -e "${CYAN}Checking for merge conflict markers...${NC}"
+if git diff --cached | grep -q "^<<<<<<\|^>>>>>>\|^======"; then
+    echo -e "${RED}❌ Found merge conflict markers!${NC}"
+    echo -e "${RED}Please resolve conflicts before pushing.${NC}"
+    ERROR_COUNT=$((ERROR_COUNT + 1))
+fi
+
+# Check for large files (>5MB)
+echo -e "${CYAN}Checking for large files...${NC}"
+LARGE_FILES=$(git diff --cached --name-only | xargs ls -lh 2>/dev/null | awk '$5 ~ /M$/ && $5+0 > 5 {print $9, $5}' || true)
+if [ ! -z "$LARGE_FILES" ]; then
+    echo -e "${YELLOW}⚠️  Large files detected:${NC}"
+    echo "$LARGE_FILES"
+    read -p "Continue anyway? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${BLUE}✋ Push cancelled.${NC}"
+        exit 0
+    fi
+fi
+
+if [ $ERROR_COUNT -gt 0 ]; then
+    echo -e "${RED}❌ Found $ERROR_COUNT critical errors. Please fix them first.${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✅ Pre-commit checks passed${NC}"
+echo ""
+
+# Step 4: Stage and commit
+echo -e "${YELLOW}Step 4: Staging and committing changes...${NC}"
+
+# Add all changes
+git add .
+echo -e "${GREEN}✅ Staged all changes${NC}"
+
+# Commit
+if git commit -m "$COMMIT_MESSAGE"; then
+    echo -e "${GREEN}✅ Committed successfully${NC}"
+else
+    if [ $? -eq 1 ]; then
+        echo -e "${YELLOW}ℹ️  Nothing to commit (working tree clean)${NC}"
+    else
+        echo -e "${RED}❌ Commit failed${NC}"
+        exit 1
+    fi
+fi
+echo ""
+
+# Step 5: Pull latest changes (to avoid conflicts)
+echo -e "${YELLOW}Step 5: Pulling latest changes from remote...${NC}"
+if git pull origin $TARGET_BRANCH --no-rebase 2>&1 | tee /tmp/git_pull_output.txt; then
+    if grep -q "Already up to date" /tmp/git_pull_output.txt; then
+        echo -e "${GREEN}✅ Already up to date${NC}"
+    else
+        echo -e "${GREEN}✅ Pulled latest changes${NC}"
+    fi
+else
+    if grep -q "CONFLICT" /tmp/git_pull_output.txt; then
+        echo -e "${RED}❌ Merge conflicts detected!${NC}"
+        echo -e "${YELLOW}Please resolve conflicts manually and try again.${NC}"
+        rm -f /tmp/git_pull_output.txt
+        exit 1
+    fi
+fi
+rm -f /tmp/git_pull_output.txt
+echo ""
+
+# Step 6: Push to remote
+echo -e "${YELLOW}Step 6: Pushing to GitHub...${NC}"
+
+# Check if branch exists on remote
+if git ls-remote --heads origin $TARGET_BRANCH | grep -q $TARGET_BRANCH; then
+    echo -e "${CYAN}Pushing to existing branch: origin/${TARGET_BRANCH}${NC}"
+else
+    echo -e "${CYAN}Creating new branch on remote: origin/${TARGET_BRANCH}${NC}"
+    read -p "This will create a new remote branch. Continue? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${BLUE}✋ Push cancelled.${NC}"
+        exit 0
+    fi
+fi
+
+# Push
+if git push origin $TARGET_BRANCH; then
+    echo -e "${GREEN}✅ Pushed to GitHub successfully!${NC}"
+else
+    echo -e "${RED}❌ Push failed!${NC}"
+    echo -e "${YELLOW}Try running: git push origin ${TARGET_BRANCH} --force${NC}"
+    echo -e "${RED}⚠️  Warning: Force push will overwrite remote changes!${NC}"
+    exit 1
+fi
+echo ""
+
+# Step 7: Summary
+COMMIT_HASH=$(git rev-parse --short HEAD)
+REMOTE_URL=$(git config --get remote.origin.url)
+
+echo ""
+echo -e "${GREEN}╔════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║        ✅ Push Successful! ✅          ║${NC}"
+echo -e "${GREEN}╚════════════════════════════════════════╝${NC}"
+echo ""
+echo -e "${MAGENTA}📊 Summary:${NC}"
+echo -e "  ${CYAN}Project:${NC}      ${PROJECT_NAME}"
+echo -e "  ${CYAN}Branch:${NC}       ${TARGET_BRANCH}"
+echo -e "  ${CYAN}Commit:${NC}       ${COMMIT_HASH}"
+echo -e "  ${CYAN}Message:${NC}      ${COMMIT_MESSAGE}"
+echo -e "  ${CYAN}Remote:${NC}       ${REMOTE_URL}"
+echo ""
+echo -e "${YELLOW}🔗 Quick Links:${NC}"
+echo -e "  ${CYAN}View on GitHub:${NC} $(echo $REMOTE_URL | sed 's/\.git$//' | sed 's/git@github.com:/https:\/\/github.com\//')"
+echo -e "  ${CYAN}Commits:${NC}        $(echo $REMOTE_URL | sed 's/\.git$//' | sed 's/git@github.com:/https:\/\/github.com\//').git/commits/${TARGET_BRANCH}"
+echo ""
+echo -e "${GREEN}══════════════════════════════════════════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}Happy Coding! Enjoy your day! Happy Life! Happy Programming! Happy Success! ${NC}"
+echo -e "${GREEN}══════════════════════════════════════════════════════════════════════════════════════${NC}"
+echo ""
