@@ -16,7 +16,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Configuration - CUSTOMIZE THESE VALUES
-GITHUB_ORG="yourorg"  # CUSTOMIZE: Replace with your GitHub organization/username
+GITHUB_ORG="techey-solution"  # CUSTOMIZE: Replace with your GitHub organization/username
 GITHUB_REPO="smart-push"  # CUSTOMIZE: Replace with your repository name
 VERSION="1.0.0"  # CUSTOMIZE: Replace with your release version
 DEB_PACKAGE_URL="https://github.com/${GITHUB_ORG}/${GITHUB_REPO}/releases/download/v${VERSION}/smart-push_${VERSION}_all.deb"  # CUSTOMIZE: Update if your deb package URL is different

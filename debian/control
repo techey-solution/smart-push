@@ -6,4 +6,4 @@ Architecture: all
 Depends: git, bash
 Maintainer: Your Name <your.email@example.com>
 Description: Smart Auto-Push to GitHub CLI tool that automates Git workflows with intelligent commit message suggestions and handles the complete add/commit/pull/push process.
-Homepage: https://github.com/yourorg/smart-push
+Homepage: https://github.com/techey-solution/smart-push
