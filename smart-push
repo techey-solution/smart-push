@@ -22,6 +22,18 @@ echo -e "${BLUE}║   🚀 Smart Auto-Push to GitHub 🚀    ║${NC}"
 echo -e "${BLUE}════════════════════════════════════════${NC}"
 echo ""
 
+# Check for help flags
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]] || [[ "$1" == "help" ]]; then
+    show_help
+    exit 0
+fi
+
+# Check for version flag
+if [[ "$1" == "-v" ]] || [[ "$1" == "--version" ]] || [[ "$1" == "version" ]]; then
+    show_version
+    exit 0
+fi
+
 # Get parameters
 COMMIT_MESSAGE=${1}
 TARGET_BRANCH=${2}
@@ -281,3 +293,50 @@ echo -e "${GREEN}═════════════════════
 echo -e "${GREEN}Happy Coding! Enjoy your day! Happy Life! Happy Programming! Happy Success! ${NC}"
 echo -e "${GREEN}══════════════════════════════════════════════════════════════════════════════════════${NC}"
 echo ""
+
+# Function to show help
+show_help() {
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo -e "${BLUE}║   🚀 Smart Push CLI - Help 🚀        ║${NC}"
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "${MAGENTA}📖 Usage:${NC}"
+    echo -e "  ${CYAN}smart-push [commit-message] [branch-name]${NC}"
+    echo ""
+    echo -e "${MAGENTA}📝 Examples:${NC}"
+    echo -e "  ${CYAN}smart-push${NC}                                    # Interactive mode"
+    echo -e "  ${CYAN}smart-push \"Fix user login bug\"${NC}              # With commit message"
+    echo -e "  ${CYAN}smart-push \"Add new feature\" feature-branch${NC}   # With message and branch"
+    echo ""
+    echo -e "${MAGENTA}🔧 Options:${NC}"
+    echo -e "  ${CYAN}-h, --help${NC}        Show this help message"
+    echo -e "  ${CYAN}-v, --version${NC}     Show version information"
+    echo ""
+    echo -e "${MAGENTA}✨ Features:${NC}"
+    echo -e "  ${CYAN}•${NC} Smart commit message suggestions"
+    echo -e "  ${CYAN}•${NC} Automatic project type detection"
+    echo -e "  ${CYAN}•${NC} Pre-commit checks for common issues"
+    echo -e "  ${CYAN}•${NC} Interactive workflow with colored output"
+    echo -e "  ${CYAN}•${NC} Support for custom commit messages and branches"
+    echo ""
+    echo -e "${MAGENTA}🔗 Repository:${NC}"
+    echo -e "  ${CYAN}https://github.com/techey-solution/smart-push${NC}"
+    echo ""
+    echo -e "${GREEN}Happy coding! 🚀${NC}"
+}
+
+# Function to show version
+show_version() {
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo -e "${BLUE}║   🚀 Smart Push CLI - Version 🚀     ║${NC}"
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "${MAGENTA}📦 Smart Push CLI v1.0.0${NC}"
+    echo ""
+    echo -e "${CYAN}Description:${NC} Smart Auto-Push to GitHub CLI tool"
+    echo -e "${CYAN}Author:${NC}      Techey Solution"
+    echo -e "${CYAN}License:${NC}     MIT"
+    echo -e "${CYAN}Repository:${NC} https://github.com/techey-solution/smart-push"
+    echo ""
+    echo -e "${GREEN}Built with ❤️ for developers${NC}"
+}
