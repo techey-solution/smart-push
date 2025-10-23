@@ -74,12 +74,13 @@ install_macos() {
             return 0
         fi
         
-        echo -e "${YELLOW}Direct installation not available. Installing via tap...${NC}"
-        # Add the tap and install
-        brew tap "${GITHUB_ORG}/${GITHUB_REPO}" || true
-        brew install "${GITHUB_ORG}/${GITHUB_REPO}/smart-push"
+        echo -e "${YELLOW}Direct installation not available. Installing manually...${NC}"
+        # Download and install manually
+        curl -O https://raw.githubusercontent.com/${GITHUB_ORG}/${GITHUB_REPO}/main/smart-push
+        chmod +x smart-push
+        sudo mv smart-push /usr/local/bin/
         
-        echo -e "${GREEN}✅ Smart Push installed successfully via Homebrew!${NC}"
+        echo -e "${GREEN}✅ Smart Push installed successfully!${NC}"
     else
         echo -e "${YELLOW}⚠️  Homebrew not found${NC}"
         echo -e "${CYAN}Installing Homebrew first...${NC}"
@@ -93,9 +94,10 @@ install_macos() {
             eval "$(/opt/homebrew/bin/brew shellenv)"
         fi
         
-        # Now install smart-push
-        brew tap "${GITHUB_ORG}/${GITHUB_REPO}"
-        brew install "${GITHUB_ORG}/${GITHUB_REPO}/smart-push"
+        # Now install smart-push manually
+        curl -O https://raw.githubusercontent.com/${GITHUB_ORG}/${GITHUB_REPO}/main/smart-push
+        chmod +x smart-push
+        sudo mv smart-push /usr/local/bin/
         
         echo -e "${GREEN}✅ Smart Push installed successfully!${NC}"
     fi
