@@ -63,13 +63,7 @@ show_version() {
     echo -e "${GREEN}Built with ❤️ for developers${NC}"
 }
 
-# Banner
-echo -e "${BLUE}════════════════════════════════════════${NC}"
-echo -e "${BLUE}║   🚀 Smart Auto-Push to GitHub 🚀    ║${NC}"
-echo -e "${BLUE}════════════════════════════════════════${NC}"
-echo ""
-
-# Check for help flags
+# Check for help flags FIRST (before any other processing)
 if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]] || [[ "$1" == "help" ]]; then
     show_help
     exit 0
@@ -80,6 +74,12 @@ if [[ "$1" == "-v" ]] || [[ "$1" == "--version" ]] || [[ "$1" == "version" ]]; t
     show_version
     exit 0
 fi
+
+# Banner
+echo -e "${BLUE}════════════════════════════════════════${NC}"
+echo -e "${BLUE}║   🚀 Smart Auto-Push to GitHub 🚀    ║${NC}"
+echo -e "${BLUE}════════════════════════════════════════${NC}"
+echo ""
 
 # Get parameters
 COMMIT_MESSAGE=${1}
