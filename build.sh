@@ -32,9 +32,12 @@ echo "📁 Using build directory: ${BUILD_DIR}"
 cp smart-push "${BUILD_DIR}/"
 cp -r debian "${BUILD_DIR}/"
 
-# Build the package
+# Rename debian to DEBIAN (required by dpkg-deb)
 cd "${BUILD_DIR}"
-dpkg-deb --build debian "${DEB_NAME}"
+mv debian DEBIAN
+
+# Build the package
+dpkg-deb --build . "${DEB_NAME}"
 
 # Move package back to original directory
 mv "${DEB_NAME}" "${OLDPWD}/"
